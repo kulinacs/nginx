@@ -38,6 +38,61 @@
     group: root
     mode: 0755
 
+- name: Create locations.d
+  file:
+    path: /etc/nginx/locations.d
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Install dhparam.pem
+  copy:
+    src: dhparam.pem
+    dest: /etc/nginx/dhparam.pem
+    owner: root
+    group: root
+    mode: 0644
+    
+- name: Install site descriptors
+  template:
+    src: server.conf.j2
+    dest: /etc/nginx/sites-available/{{ item.name }}.conf
+    owner: root
+    group: root
+    mode: 0755
+  with_items: "{{ nginx_servers }}"
+  loop_control:
+    label: "{{ item.name }}"
+  notify:
+    - nginx
+
+- name: Enable site descriptors
+  file:
+    src: /etc/nginx/sites-available/{{ item.name }}.conf
+    dest: /etc/nginx/sites-enabled/{{ item.name }}.conf
+    state: link
+  with_items: "{{ nginx_servers }}"
+  when: item.enabled is not defined or item.enabled
+  loop_control:
+    label: "{{ item.name }}"
+  notify:
+    - nginx
+
+- name: Create sites locations.d directories
+  file:
+    path: /etc/nginx/locations.d/{{ item.name }}
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  with_items: "{{ nginx_servers }}"
+  when: item.locationsd is not defined or item.locationsd
+  loop_control:
+    label: "{{ item.name }}"
+  notify:
+    - nginx
+
 - name: Enable nginx
   runit:
     name: nginx
