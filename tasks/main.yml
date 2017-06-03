@@ -64,6 +64,7 @@
   with_items: "{{ nginx_servers }}"
   loop_control:
     label: "{{ item.name }}"
+  when: nginx_servers is defined
   notify:
     - nginx
 
@@ -73,7 +74,7 @@
     dest: /etc/nginx/sites-enabled/{{ item.name }}.conf
     state: link
   with_items: "{{ nginx_servers }}"
-  when: item.enabled is not defined or item.enabled
+  when: nginx_servers is defined and (item.enabled is not defined or item.enabled)
   loop_control:
     label: "{{ item.name }}"
   notify:
@@ -87,7 +88,7 @@
     group: root
     mode: 0755
   with_items: "{{ nginx_servers }}"
-  when: item.locationsd is not defined or item.locationsd
+  when: nginx_servers is defined and (item.locationsd is not defined or item.locationsd)
   loop_control:
     label: "{{ item.name }}"
   notify:
